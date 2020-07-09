@@ -1,0 +1,31 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+
+ifconfig wlan0 down
+iwconfig wlan0 mode Ad-Hoc
+
+# Name the ad hoc network/SSID by appending "_network" onto the hostname
+SSID=`/bin/hostname`"_network"
+iwconfig wlan0 essid $SSID
+
+# Uncomment the next line to use a WEP key
+# This key must be a hex string.  You can generate one here:
+#    http://www.andrewscompanies.com/tools/wep.asp
+# NOTE: Use a 128 bit key. A 256 bit key does not seem to work.
+#iwconfig wlan0 key 3b205742624039762d586f4f3e
+
+sleep 1
+
+# The address on the next line should be consistent with the private
+# network range specified in udhcpd.conf
+ifconfig wlan0 192.168.99.2
+
+ifconfig wlan0 up
+udhcpd /etc/udhcpd.conf
+
+exit 0

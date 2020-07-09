@@ -1,0 +1,16 @@
+.bash_history
+.cache/
+.config/
+.gnupg/
+.gphoto/
+.lesshst
+.local/
+.ssh/
+.viminfo
+.vnc/
+.Xauthority
+.xsession-errors
+.xsession-errors.old
+.pyhistory
+*.pyc
+__pycache__

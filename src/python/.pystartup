@@ -1,0 +1,26 @@
+# Add auto-completion and a stored history file of commands to your Python
+# interactive interpreter. This is required for versions of Python prior to
+# version 3.4.  Python 3.4 and later provides this out of the box.
+#
+# Store the file in ~/.pystartup, and set an environment variable to point
+# to it:  "export PYTHONSTARTUP=~/.pystartup" in bash.
+
+import atexit
+import os
+import readline
+import rlcompleter
+
+def save_history(histFile):
+   import readline
+   readline.set_history_length(1000)
+   readline.write_history_file(histFile)
+
+histFile = os.path.join(os.path.expanduser('~'), 'src', 'python', '.pyhistory')
+
+if os.path.exists(histFile):
+   readline.read_history_file(histFile)
+   readline.parse_and_bind('tab: complete')
+   print('Python shell history and tab completion are enabled.')
+
+atexit.register(save_history, histFile)
+del os, atexit, readline, rlcompleter, save_history, histFile
