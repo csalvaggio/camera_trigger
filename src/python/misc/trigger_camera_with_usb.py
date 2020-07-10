@@ -35,8 +35,6 @@ def trigger_camera(camera, root=None, verbose=False):
 
    del camera_filepath
 
-   return True
-
 
 # Parse the command-line arguments
 description = 'Trigger camera at specific clock-time instances'
@@ -139,9 +137,9 @@ while True:
    break
 
 # Continuously trigger the camera at the user-specified clock-time instances
-first_trigger = True
-while True:
-   try:
+try:
+   first_trigger = True
+   while True:
       # Get the elapsed number of seconds since midnight
       if clock_to_use == 'computer':
          iso8601_time_string = clocks.iso8601_time_string_using_computer_clock()

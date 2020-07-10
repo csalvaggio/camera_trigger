@@ -20,17 +20,17 @@ def iso8601_time_string_using_gps_clock(timeout = 30):
 
             data_stream.unpack(new_data)
 
-            # Determine the fix type that the GPS currntly has
-            #    0 - no mode value yet seen
-            #    1 - no fix
-            #    2 - 2D
-            #    3 - 3D
-            mode = data_stream.TPV['mode']
-            if mode == 'n/a':
-               continue
-            if int(mode) < 2:
-               iso8601_time_string = None
-               break
+#            # Determine the fix type that the GPS currntly has
+#            #    0 - no mode value yet seen
+#            #    1 - no fix
+#            #    2 - 2D
+#            #    3 - 3D
+#            mode = data_stream.TPV['mode']
+#            if mode == 'n/a':
+#               continue
+#            if int(mode) < 2:
+#               iso8601_time_string = None
+#               break
 
             iso8601_time_string = data_stream.TPV['time']
             if iso8601_time_string == 'n/a':

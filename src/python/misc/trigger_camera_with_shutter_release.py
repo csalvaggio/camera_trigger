@@ -5,45 +5,54 @@ import sys
 import time
 
 def trigger_camera(half_press_time, full_press_time, verbose=False):
-   mode = RPi.GPIO.BCM
-   half_press_pin = 24
-   full_press_pin = 23
+   try:
+      mode = RPi.GPIO.BCM
+      half_press_pin = 24
+      full_press_pin = 23
 
-   # Set up half- and full-press pins
-   RPi.GPIO.setmode(mode)
-   RPi.GPIO.setup(half_press_pin, RPi.GPIO.OUT)
-   RPi.GPIO.setup(full_press_pin, RPi.GPIO.OUT)
+      # Set up half- and full-press pins
+      RPi.GPIO.setmode(mode)
+      RPi.GPIO.setup(half_press_pin, RPi.GPIO.OUT)
+      RPi.GPIO.setup(full_press_pin, RPi.GPIO.OUT)
 
-   # Half press the shutter-release button (focus and exposure mode)
-   if half_press_time > 0:
+      # Half press the shutter-release button (focus and exposure mode)
+      if half_press_time > 0:
+         if verbose:
+            msg = '   '
+            msg += 'Shutter half-pressed\n'
+            sys.stdout.write(msg)
+         RPi.GPIO.output(half_press_pin, True)
+         time.sleep(half_press_time) 
+
+      # Full press the shutter-release button (trigger)
+      if full_press_time > 0:
+         if verbose:
+            msg = '   '
+            msg += 'Shutter full-pressed\n'
+            sys.stdout.write(msg)
+         RPi.GPIO.output(full_press_pin, True)
+         time.sleep(full_press_time) 
+
+      # Release both the half- and full-press buttons
       if verbose:
          msg = '   '
-         msg += 'Shutter half-pressed\n'
+         msg += 'Shutter released\n'
          sys.stdout.write(msg)
-      RPi.GPIO.output(half_press_pin, True)
-      time.sleep(half_press_time) 
+      RPi.GPIO.output(half_press_pin, False)
+      RPi.GPIO.output(full_press_pin, False)
 
-   # Full press the shutter-release button (trigger)
-   if full_press_time > 0:
+      # Reset the GPIO pins
+      RPi.GPIO.cleanup()
+
+   except KeyboardInterrupt:
       if verbose:
-         msg = '   '
-         msg += 'Shutter full-pressed\n'
+         msg = '\n'
+         msg += '... Exiting\n'
          sys.stdout.write(msg)
-      RPi.GPIO.output(full_press_pin, True)
-      time.sleep(full_press_time) 
+      # Reset the GPIO pins
+      RPi.GPIO.cleanup()
+      sys.exit()
 
-   # Release both the half- and full-press buttons
-   if verbose:
-      msg = '   '
-      msg += 'Shutter released\n'
-      sys.stdout.write(msg)
-   RPi.GPIO.output(half_press_pin, False)
-   RPi.GPIO.output(full_press_pin, False)
-
-   return True
-
-
-gpio_in_use = False
 
 # Parse the command-line arguments
 description = 'Trigger camera at specific clock-time instances'
@@ -122,9 +131,9 @@ if verbose:
    sys.stdout.write(msg)
 
 # Continuously trigger the camera at the user-specified clock-time instances
-first_trigger = True
-while True:
-   try:
+try:
+   first_trigger = True
+   while True:
       # Get the elapsed number of seconds since midnight
       if clock_to_use == 'computer':
          iso8601_time_string = clocks.iso8601_time_string_using_computer_clock()
@@ -169,20 +178,14 @@ while True:
 
          # Trigger the camera
          trigger_camera(half_press_time, full_press_time, verbose)
-         gpio_in_use = True
 
          # Delay execution until the next second
          time.sleep(1)
 
-   except KeyboardInterrupt:
-      if verbose:
-         if gpio_in_use:
-            msg = '\n'
-            msg += '... Cleaning up GPIO resources'
-            sys.stdout.write(msg)
-            RPi.GPIO.cleanup()
-         msg = '\n'
-         msg += '... Exiting'
-         sys.stdout.write(msg)
-      msg = ''
-      sys.exit(msg)
+except KeyboardInterrupt:
+   if verbose:
+      msg = '\n'
+      msg += '... Exiting'
+      sys.stdout.write(msg)
+   msg = ''
+   sys.exit(msg)
