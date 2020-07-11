@@ -195,11 +195,11 @@ try:
          # Delay execution until the next second
          time.sleep(1)
 
-   except KeyboardInterrupt:
-      camera.exit()
-      if verbose:
-         msg = '\n'
-         msg += '... Exiting'
-         sys.stdout.write(msg)
-      msg = ''
-      sys.exit(msg)
+except KeyboardInterrupt:
+   camera.exit()
+   if verbose:
+      msg = '\n'
+      msg += '... Exiting'
+      sys.stdout.write(msg)
+   msg = ''
+   sys.exit(msg)
