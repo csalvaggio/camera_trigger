@@ -140,17 +140,18 @@ try:
          seconds_since_midnight = \
             clocks.convert_iso8601_time_string(iso8601_time_string, 's')
       else:
-         iso8601_time_string = clocks.iso8601_time_string_using_gps_clock()
-         if iso8601_time_string:
-            seconds_since_midnight = \
-               clocks.convert_iso8601_time_string(iso8601_time_string, 's')
-         else:
-            msg = '\n'
-            msg += '*** ERROR *** '
-            msg += 'GPS time was not available, check if fix was obtained\n'
-            msg += '\n'
-            sys.stderr.write(msg)
-            sys.exit()
+         while True:
+            iso8601_time_string = clocks.iso8601_time_string_using_gps_clock()
+            if iso8601_time_string:
+               seconds_since_midnight = \
+                  clocks.convert_iso8601_time_string(iso8601_time_string, 's')
+               break
+            else:
+               msg = '*** ERROR *** '
+               msg += 'GPS time was not available, continuing to try ...\n'
+               sys.stderr.write(msg)
+               time.sleep(0.5)
+               continue
 
       # If the clock-time to trigger has arrived, start the triggering process
       if seconds_since_midnight % trigger_time == 0:
