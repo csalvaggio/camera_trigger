@@ -91,6 +91,72 @@ If gphoto2 indicates that it is currently saving to the ``Internal RAM`` as abov
            Choice: 1 Memory card
            END
 
+##CREATE DUPLICATE CAMERA TRIGGER
+To create an additional camera trigger, [create a byte-for-byte copy of the SD card](https://appcodelabs.com/how-to-backup-clone-a-raspberry-pi-sd-card-on-macos-the-easy-way) created above.  While this is technically all that needs done, it is recommended that the computer's name is changed so that any ad hoc wireless network that is created will have a different name and will not interfere with other triggers in close proximity.
+
+Once the card is duplicated, change the hostname using a macOS computer equipped with [Paragon Software's extFS](https://www.paragon-software.com/home/extfs-mac/) application.  Insert the Raspberry Pi's SD card in the Mac.  You will notice that two partitions are mounted; ``boot`` and ``rootfs``.  The ``rootfs`` partition is the Raspberry Pi's main filesystem.  The hostname (*e.g.* ``cameratriggermaster``) needs to be changed in two places on that filesystem; in ``/etc/hostname``
+
+    cameratriggermaster
+
+and in ``/etc/hosts``
+
+    127.0.0.1	localhost
+    ::1		localhost ip6-localhost ip6-loopback
+    ff02::1		ip6-allnodes
+    ff02::2		ip6-allrouters
+
+    127.0.1.1	cameratriggermaster
+
+This can be done manually using your favorite editor (*e.g.* vi, nano, emacs, or Xcode) or by executing the following script that should be named ``change_rpi_hostname.sh``
+
+    #!/bin/bash
+
+    OLD_HOST=$1
+    NEW_HOST=$2
+
+    DISK="/dev/"
+    DISK+=`diskutil list | grep rootfs | awk -v N=6 '{print substr($N,0,5)}'`
+
+    if [ $DISK = "/dev/" ]
+    then
+       echo "'rootfs' partition not found, be sure RPi SD card is inserted"
+       exit
+    fi
+
+    if [ -z $OLD_HOST ] || [ -z $NEW_HOST ]
+    then
+       echo "Usage: $0 <old hostname> <new hostname>"
+       exit
+    else
+       echo "Updating hostname from '$OLD_HOST' to '$NEW_HOST' on $DISK"
+
+       echo ""
+       echo "***** /etc/hostname (ORIGINAL)"
+       cat  /Volumes/rootfs/etc/hostname
+       sed -i -e "s/$OLD_HOST/$NEW_HOST/g" /Volumes/rootfs/etc/hostname
+       echo ""
+       echo "***** /etc/hostname (UPDATED)"
+       cat  /Volumes/rootfs/etc/hostname
+
+       echo ""
+       echo "***** /etc/hosts (ORIGINAL)"
+       cat  /Volumes/rootfs/etc/hosts
+       sed -i -e "s/$OLD_HOST/$NEW_HOST/g" /Volumes/rootfs/etc/hosts
+       echo ""
+       echo "***** /etc/hosts (UPDATED)"
+       cat  /Volumes/rootfs/etc/hosts
+
+       echo ""
+       echo "Unmounting $DISK"
+       diskutil umountDisk $DISK
+    fi
+
+by executed as
+
+    ./change_rpi_hostname.sh cameratriggermaster cameratrigger0
+
+where ``cameratriggermaster`` is the original hostname and ``cameratrigger0`` is the desired hostname for the duplicate.
+
 ## USAGE
 At this point, the system is ready to use as a camera triggering system using either a shutter release cable (assuming the custom camera trigger board is attached) or a USB cable (using GPhoto2).
 
@@ -141,3 +207,11 @@ To use the USB cable
                             [default is "computer"]
       -d DIRECTORY, --directory DIRECTORY
                             directory to save images to [default is None]
+
+While logged on to the Raspberry Pi, to switch on ad hoc network at next reboot
+
+    switch_to_adhoc
+
+To allow the Raspberry Pi to rejoin LAN at next reboot
+
+    switch_to_lan
