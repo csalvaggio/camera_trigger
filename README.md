@@ -316,6 +316,6 @@ To allow the Raspberry Pi to rejoin LAN at next reboot by executing the followin
     echo "Raspberry Pi will join LAN at next boot."
     exit 0
 
-executed as
+which is executed as
 
     ./switch_to_lan.sh
