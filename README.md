@@ -92,7 +92,58 @@ If gphoto2 indicates that it is currently saving to the ``Internal RAM`` as abov
            Choice: 1 Memory card
            END
 
-## CREATE DUPLICATE CAMERA TRIGGER
+## TRIGGER USAGE
+At this point, the system is ready to use as a camera triggering system using either a shutter release cable (assuming the custom camera trigger board is attached) or a USB cable (using GPhoto2).
+
+To use the shutter release cable
+
+    # python3 trigger_camera_with_shutter_release.py --help
+    usage: trigger_camera_with_shutter_release.py [-h] [-v] [-c {computer,gps}]
+                                              [-hp HALF_PRESS_TIME]
+                                              [-fp FULL_PRESS_TIME]
+                                              trigger_time
+
+    Trigger camera at specific clock-time instances
+
+    positional arguments:
+      trigger_time          clock-time [seconds] at which to trigger (e.g. 10 for
+                            every 10-second mark past the minute, 60 for the top
+                            of every minute, 3600 for the top of every hour)
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --verbose         verbose [default is False]
+      -c {computer,gps}, --clock-to-use {computer,gps}
+                            clock to use (valid options are "computer" or "gps")
+                            [default is "computer"]
+      -hp HALF_PRESS_TIME, --half-press-time HALF_PRESS_TIME
+                            half-press time [s] [default is 0.0]
+      -fp FULL_PRESS_TIME, --full-press-time FULL_PRESS_TIME
+                            full-press time [s] [default is 1.0]
+
+To use the USB cable
+
+    # python3 trigger_camera_with_usb.py --help
+    usage: trigger_camera_with_usb.py [-h] [-v] [-c {computer,gps}] [-d DIRECTORY]
+                                      trigger_time
+
+    Trigger camera at specific clock-time instances
+
+    positional arguments:
+      trigger_time          clock-time [seconds] at which to trigger (e.g. 10 for
+                            every 10-second mark past the minute, 60 for the top
+                            of every minute, 3600 for the top of every hour)
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -v, --verbose         verbose [default is False]
+      -c {computer,gps}, --clock-to-use {computer,gps}
+                            clock to use (valid options are "computer" or "gps")
+                            [default is "computer"]
+      -d DIRECTORY, --directory DIRECTORY
+                            directory to save images to [default is None]
+
+## DUPLICATING CAMERA TRIGGER
 To create an additional camera trigger, [create a byte-for-byte copy of the SD card](https://appcodelabs.com/how-to-backup-clone-a-raspberry-pi-sd-card-on-macos-the-easy-way) created above.  While this is technically all that needs done, it is recommended that the computer's name is changed so that any ad hoc wireless network that is created will have a different name and will not interfere with other triggers in close proximity.
 
 Once the card is duplicated, change the hostname using a macOS computer equipped with [Paragon Software's extFS](https://www.paragon-software.com/home/extfs-mac/) application.  Insert the Raspberry Pi's SD card in the Mac.  You will notice that two partitions are mounted; ``boot`` and ``rootfs``.  The ``rootfs`` partition is the Raspberry Pi's main filesystem.  The hostname (*e.g.* ``cameratriggermaster``) needs to be changed in two places on that filesystem; in ``/etc/hostname``
@@ -158,8 +209,15 @@ executed as
 
 where ``cameratriggermaster`` is the original hostname and ``cameratrigger0`` is the desired hostname for the duplicate.
 
-## TOGGLE AD HOC NETWORK/LAN (ON MAC)
-The ad hoc network can be switched on at next reboot by executing the following script that should be named ``switch_to_adhoc.sh``
+## SWITCHING NETWORK TYPE
+### LAN -> AD HOC
+###### On Raspberry Pi
+While logged on to the Raspberry Pi, to switch to an ad hoc network at next reboot
+
+    switch_to_adhoc
+
+###### Off Raspberry Pi
+The ad hoc network can be switched on for the next boot by executing the following script (that should be named ``switch_to_adhoc.sh``)
 
     #!/bin/bash
 
@@ -203,10 +261,17 @@ The ad hoc network can be switched on at next reboot by executing the following 
     echo "Ad hoc network will start at next boot."
     exit 0
 
-executed as
+which is executed as
 
     ./switch_to_adhoc.sh
 
+### AD HOC -> LAN
+###### On Raspberry Pi
+To allow the Raspberry Pi to rejoin LAN at next reboot
+
+    switch_to_lan
+
+###### Off Raspberry Pi
 To allow the Raspberry Pi to rejoin LAN at next reboot by executing the following script that should be named ``switch_to_lan.sh``
 
     #!/bin/bash
@@ -254,63 +319,3 @@ To allow the Raspberry Pi to rejoin LAN at next reboot by executing the followin
 executed as
 
     ./switch_to_lan.sh
-
-## TOGGLE AD HOC NETWORK/LAN (ON RASPBERRY PI)
-While logged on to the Raspberry Pi, to switch on ad hoc network at next reboot
-
-    switch_to_adhoc
-
-To allow the Raspberry Pi to rejoin LAN at next reboot
-
-    switch_to_lan
-
-## TRIGGER USAGE
-At this point, the system is ready to use as a camera triggering system using either a shutter release cable (assuming the custom camera trigger board is attached) or a USB cable (using GPhoto2).
-
-To use the shutter release cable
-
-    # python3 trigger_camera_with_shutter_release.py --help
-    usage: trigger_camera_with_shutter_release.py [-h] [-v] [-c {computer,gps}]
-                                              [-hp HALF_PRESS_TIME]
-                                              [-fp FULL_PRESS_TIME]
-                                              trigger_time
-
-    Trigger camera at specific clock-time instances
-
-    positional arguments:
-      trigger_time          clock-time [seconds] at which to trigger (e.g. 10 for
-                            every 10-second mark past the minute, 60 for the top
-                            of every minute, 3600 for the top of every hour)
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -v, --verbose         verbose [default is False]
-      -c {computer,gps}, --clock-to-use {computer,gps}
-                            clock to use (valid options are "computer" or "gps")
-                            [default is "computer"]
-      -hp HALF_PRESS_TIME, --half-press-time HALF_PRESS_TIME
-                            half-press time [s] [default is 0.0]
-      -fp FULL_PRESS_TIME, --full-press-time FULL_PRESS_TIME
-                            full-press time [s] [default is 1.0]
-
-To use the USB cable
-
-    # python3 trigger_camera_with_usb.py --help
-    usage: trigger_camera_with_usb.py [-h] [-v] [-c {computer,gps}] [-d DIRECTORY]
-                                      trigger_time
-
-    Trigger camera at specific clock-time instances
-
-    positional arguments:
-      trigger_time          clock-time [seconds] at which to trigger (e.g. 10 for
-                            every 10-second mark past the minute, 60 for the top
-                            of every minute, 3600 for the top of every hour)
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -v, --verbose         verbose [default is False]
-      -c {computer,gps}, --clock-to-use {computer,gps}
-                            clock to use (valid options are "computer" or "gps")
-                            [default is "computer"]
-      -d DIRECTORY, --directory DIRECTORY
-                            directory to save images to [default is None]
