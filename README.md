@@ -92,7 +92,7 @@ If gphoto2 indicates that it is currently saving to the ``Internal RAM`` as abov
            Choice: 1 Memory card
            END
 
-##CREATE DUPLICATE CAMERA TRIGGER
+## CREATE DUPLICATE CAMERA TRIGGER
 To create an additional camera trigger, [create a byte-for-byte copy of the SD card](https://appcodelabs.com/how-to-backup-clone-a-raspberry-pi-sd-card-on-macos-the-easy-way) created above.  While this is technically all that needs done, it is recommended that the computer's name is changed so that any ad hoc wireless network that is created will have a different name and will not interfere with other triggers in close proximity.
 
 Once the card is duplicated, change the hostname using a macOS computer equipped with [Paragon Software's extFS](https://www.paragon-software.com/home/extfs-mac/) application.  Insert the Raspberry Pi's SD card in the Mac.  You will notice that two partitions are mounted; ``boot`` and ``rootfs``.  The ``rootfs`` partition is the Raspberry Pi's main filesystem.  The hostname (*e.g.* ``cameratriggermaster``) needs to be changed in two places on that filesystem; in ``/etc/hostname``
