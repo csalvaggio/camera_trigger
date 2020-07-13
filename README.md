@@ -34,6 +34,7 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
         sudo apt-get install vim
         sudo apt-get install dcraw
+        sudo apt-get install udhcpd
         sudo apt-get install gpsd \
                              gpsd-clients
         sudo apt-get install gphoto2 \
@@ -47,7 +48,7 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
                              python-piggyphoto \
                              python3-gphoto2 \
                              python3-gphoto2cffi
-        
+
 * In the ``/home/pi`` directory, clone this repository
 
         git clone https://github.com/csalvaggio/camera_trigger.git
