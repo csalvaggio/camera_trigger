@@ -152,13 +152,119 @@ This can be done manually using your favorite editor (*e.g.* vi, nano, emacs, or
        diskutil umountDisk $DISK
     fi
 
-by executed as
+executed as
 
     ./change_rpi_hostname.sh cameratriggermaster cameratrigger0
 
 where ``cameratriggermaster`` is the original hostname and ``cameratrigger0`` is the desired hostname for the duplicate.
 
-## USAGE
+## TOGGLE AD HOC NETWORK/LAN (ON MAC)
+The ad hoc network can be switched on at next reboot by executing the following script that should be named ``switch_to_adhoc.sh``
+
+    #!/bin/bash
+
+    #
+    # Install script for RPiAdHocWifi (from macOS)
+    #
+
+    LOCAL_MNT="/Volumes/rootfs"
+    SCRIPT_DIR=$LOCAL_MNT/home/pi/src/scripts/RPiAdHocWiFi
+
+    # Check if Raspberry Pi card is inserted and mounted
+    if [ ! -e $LOCAL_MNT ]
+    then
+       echo "'rootfs' partition not found, be sure RPi SD card is inserted"
+       exit
+    fi
+
+    touch $LOCAL_MNT/var/lib/misc/udhcpd.leases
+
+    # Make backups of existing files
+    if [ -e $LOCAL_MNT/etc/rc.local ]
+    then
+        cp $LOCAL_MNT/etc/rc.local $LOCAL_MNT/etc/rc.local.adhoc_bak
+    fi
+
+    if [ -e $LOCAL_MNT/etc/udhcpd.conf ]
+    then
+        cp $LOCAL_MNT/etc/udhcpd.conf $LOCAL_MNT/etc/udhcpd.conf.adhoc_bak
+    fi
+
+    if [ -e $LOCAL_MNT/etc/dhcpcd.conf ]
+    then
+        cp $LOCAL_MNT/etc/dhcpcd.conf $LOCAL_MNT/etc/dhcpcd.conf.adhoc_bak
+    fi
+
+    # Copy new files
+    cp $SCRIPT_DIR/rc.local $LOCAL_MNT/etc
+    cp $SCRIPT_DIR/udhcpd.conf $LOCAL_MNT/etc
+    cp $SCRIPT_DIR/dhcpcd.conf $LOCAL_MNT/etc
+
+    echo "Ad hoc network will start at next boot."
+    exit 0
+
+executed as
+
+    ./switch_to_adhoc.sh
+
+To allow the Raspberry Pi to rejoin LAN at next reboot by executing the following script that should be named ``switch_to_lan.sh``
+
+    #!/bin/bash
+
+    #
+    # Reversion script for RPiAdHocWifi (from macOS)
+    #
+
+    LOCAL_MNT="/Volumes/rootfs"
+    SCRIPT_DIR=$LOCAL_MNT/home/pi/src/scripts/RPiAdHocWiFi
+
+    # Check if Raspberry Pi card is inserted and mounted
+    if [ ! -e $LOCAL_MNT ]
+    then
+       echo "'rootfs' partition not found, be sure RPi SD card is inserted"
+       exit
+    fi
+
+    # Restore from backups if they exist or delete the files
+    if [ -e $LOCAL_MNT/etc/rc.local.adhoc_bak ]
+    then
+        cp $LOCAL_MNT/etc/rc.local.adhoc_bak $LOCAL_MNT/etc/rc.local
+    fi
+    rm $LOCAL_MNT/etc/rc.local.adhoc_bak
+
+    if [ -e $LOCAL_MNT/etc/udhcpd.conf.adhoc_bak ]
+    then
+        cp $LOCAL_MNT/etc/udhcpd.conf.adhoc_bak $LOCAL_MNT/etc/udhcpd.conf
+    else
+        rm $LOCAL_MNT/etc/udhcpd.conf
+    fi
+    rm $LOCAL_MNT/etc/udhcpd.conf.adhoc_bak
+
+    if [ -e $LOCAL_MNT/etc/dhcpcd.conf.adhoc_bak ]
+    then
+        cp $LOCAL_MNT/etc/dhcpcd.conf.adhoc_bak $LOCAL_MNT/etc/dhcpcd.conf
+    else
+        rm $LOCAL_MNT/etc/dhcpcd.conf
+    fi
+    rm $LOCAL_MNT/etc/dhcpcd.conf.adhoc_bak
+
+    echo "Raspberry Pi will join LAN at next boot."
+    exit 0
+
+executed as
+
+    ./switch_to_lan.sh
+
+## TOGGLE AD HOC NETWORK/LAN (ON RASPBERRY PI)
+While logged on to the Raspberry Pi, to switch on ad hoc network at next reboot
+
+    switch_to_adhoc
+
+To allow the Raspberry Pi to rejoin LAN at next reboot
+
+    switch_to_lan
+
+## TRIGGER USAGE
 At this point, the system is ready to use as a camera triggering system using either a shutter release cable (assuming the custom camera trigger board is attached) or a USB cable (using GPhoto2).
 
 To use the shutter release cable
@@ -208,11 +314,3 @@ To use the USB cable
                             [default is "computer"]
       -d DIRECTORY, --directory DIRECTORY
                             directory to save images to [default is None]
-
-While logged on to the Raspberry Pi, to switch on ad hoc network at next reboot
-
-    switch_to_adhoc
-
-To allow the Raspberry Pi to rejoin LAN at next reboot
-
-    switch_to_lan
