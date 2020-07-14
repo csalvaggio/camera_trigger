@@ -17,17 +17,17 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
 ## INSTALLATION
 * Install the **Raspberry Pi OS Full** operating system on an SD card using one of the recommended methods
-    * [Raspberry Pi Imager for Windows](https://downloads.raspberrypi.org/imager/imager.exe)
-    * [Raspberry Pi Imager for macOS](https://downloads.raspberrypi.org/imager/imager.dmg)
-    * [Raspberry Pi Imager for Ubuntu](https://downloads.raspberrypi.org/imager/imager_amd64.deb)
+ * [Raspberry Pi Imager for Windows](https://downloads.raspberrypi.org/imager/imager.exe)
+ * [Raspberry Pi Imager for macOS](https://downloads.raspberrypi.org/imager/imager.dmg)
+ * [Raspberry Pi Imager for Ubuntu](https://downloads.raspberrypi.org/imager/imager_amd64.deb)
 
 * Perform headless configuration (on your setup machine)
 
-    * Wireless networking
+ * Wireless networking
 
-        Define a wpa_supplicant.conf file for your particular wireless network. Put this file in the /boot partition, and when the Pi first boots, it will copy that file into the correct location in the Linux root file system and use those settings to start up wireless networking.
+     Define a wpa_supplicant.conf file for your particular wireless network. Put this file in the /boot partition, and when the Pi first boots, it will copy that file into the correct location in the Linux root file system and use those settings to start up wireless networking.
 
-         *wpa_supplicant.conf*
+     *wpa_supplicant.conf*
 
             ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
             update_config=1
@@ -39,9 +39,9 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
             	key_mgmt=WPA-PSK
             }
 
-    * Enable SSH
+ * Enable SSH
 
-        For headless setup, SSH can be enabled by placing an empty file named ``ssh``, without any extension, onto the /boot partition of the SD card. When the Pi boots, it looks for the ``ssh`` file. If it is found, SSH is enabled and the file is deleted.
+     For headless setup, SSH can be enabled by placing an empty file named ``ssh``, without any extension, onto the /boot partition of the SD card. When the Pi boots, it looks for the ``ssh`` file. If it is found, SSH is enabled and the file is deleted.
 
 * Change the hostname as described [here](#duplicating-camera-trigger)
 
@@ -55,13 +55,13 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
         sudo raspi-config
 
-    **Localisation Options > Change Time Zone > None of the above > UTC**
+ **Localisation Options > Change Time Zone > None of the above > UTC**
 
 * Enable VNC
 
         sudo raspi-config
 
-    **Interfacing Options > VNC > Yes**
+ **Interfacing Options > VNC > Yes**
 
 * Update and upgrade your Raspberry Pi
 
@@ -71,27 +71,27 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
 * Configure the BerryGPS-IMU V3 - The manufacturer's instructions may be found in the article [BerryGPS Setup Guide for Raspberry Pi](https://ozzmaker.com/berrygps-setup-guide-raspberry-pi/) and are summarized below 
 
-  * The serial console needs to be disabled and the the serial port enabled
+ * The serial console needs to be disabled and the the serial port enabled
 
             sudo raspi-config
 
      **Interfacing Options > Serial > No > Yes** and **Yes** to reboot
 
-  * Test that the GPS is operating properly (serial)
+ * Test that the GPS is operating properly (serial)
  
             cat /dev/serial0
 
-  * Install ``gpsd``. ``gpsd`` is a daemon that receives data from a GPS receiver, and provides the data back to multiple applications through a socket.
+ * Install ``gpsd``. ``gpsd`` is a daemon that receives data from a GPS receiver, and provides the data back to multiple applications through a socket.
 
             sudo apt-get install gpsd-clients gpsd
 
-  * Edit the ``gpsd`` configuration file so that the daemon uses the correct serial device
+ * Edit the ``gpsd`` configuration file so that the daemon uses the correct serial device
 
             sudo vi /etc/default/gpsd
 
      Look for ``DEVICES=""`` and change it to ``DEVICES="/dev/serial0"``
 
-  * Make sure that ``gpsd`` starts automatically at boot time
+ * Make sure that ``gpsd`` starts automatically at boot time
 
             sudo systemctl stop gpsd.socket
             sudo systemctl disable gpsd.socket
@@ -100,7 +100,7 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
             sudo reboot
 
-  * Test that the GPS is operating properly (socket)
+ * Test that the GPS is operating properly (socket)
 
             gpspipe -r
 
@@ -111,11 +111,11 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
 * Configure and test ``gphoto2``
 
-  * Install the following packages
+ * Install the following packages
   
             sudo apt-get install gphoto2 libgphoto2-6 libgphoto2-dev libgphoto2-dev-doc libgphoto2-l10n libgphoto2-port12 python-gphoto2-doc python-gphoto2cffi python-piggyphoto python3-gphoto2 python3-gphoto2cffi
 
-  * With a DSLR connected to the Raspberry Pi via a USB cable, check where ``gphoto2`` is saving images on the camera
+ * With a DSLR connected to the Raspberry Pi via a USB cable, check where ``gphoto2`` is saving images on the camera
 
             gphoto2 --get-config capturetarget
                Label: Capture Target
@@ -215,6 +215,7 @@ To use the USB cable
                             directory to save images to [default is None]
 
 ## MAINTENANCE
+
 ### DUPLICATING CAMERA TRIGGER
 To create an additional camera trigger, [create a byte-for-byte copy of the SD card](https://appcodelabs.com/how-to-backup-clone-a-raspberry-pi-sd-card-on-macos-the-easy-way) created above.  While this is technically all that needs done, it is recommended that the computer's name is changed so that any ad hoc wireless network that is created will have a different name and will not interfere with other triggers in close proximity.
 
