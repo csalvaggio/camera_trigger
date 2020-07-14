@@ -75,7 +75,7 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
             sudo raspi-config
 
-        **Interfacing Options > Serial > No > Yes** and **Yes** to reboot
+     **Interfacing Options > Serial > No > Yes** and **Yes** to reboot
 
   * Test that the GPS is operating properly (serial)
  
@@ -89,7 +89,7 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
 
             sudo vi /etc/default/gpsd
 
-        Look for ``DEVICES=""`` and change it to ``DEVICES="/dev/serial0"``
+     Look for ``DEVICES=""`` and change it to ``DEVICES="/dev/serial0"``
 
   * Make sure that ``gpsd`` starts automatically at boot time
 
