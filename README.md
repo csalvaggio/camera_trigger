@@ -21,78 +21,149 @@ This repository contains the ``/home/pi`` folder for the Raspberry Pi appliance 
     * [Raspberry Pi Imager for macOS](https://downloads.raspberrypi.org/imager/imager.dmg)
     * [Raspberry Pi Imager for Ubuntu](https://downloads.raspberrypi.org/imager/imager_amd64.deb)
 
-* Boot your Raspberry Pi
+* Perform headless configuration (on your setup machine)
 
-* Configure your Raspberry Pi so that it may connect to your local area network and access the Internet
+    * Wireless networking
+
+        Define a wpa_supplicant.conf file for your particular wireless network. Put this file in the /boot partition, and when the Pi first boots, it will copy that file into the correct location in the Linux root file system and use those settings to start up wireless networking.
+
+         *wpa_supplicant.conf*
+
+            ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+            update_config=1
+            country=US
+
+            network={
+            	ssid="<insert your SSID here>"
+            	psk="<insert your network's WPA passphrase here>"
+            	key_mgmt=WPA-PSK
+            }
+
+    * Enable SSH
+
+        For headless setup, SSH can be enabled by placing an empty file named ``ssh``, without any extension, onto the /boot partition of the SD card. When the Pi boots, it looks for the ``ssh`` file. If it is found, SSH is enabled and the file is deleted.
+
+* Change the hostname as described [here](#duplicating-camera-trigger)
+
+* If it is still mounted, eject your SD card making sure you eject all partitions (under macOS you may use the ``diskutil`` command, *e.g.* ``diskutil umountDisk /dev/disk2`` where ``/dev/disk2`` is the name for the mounted volume)
+
+* Insert your card and boot your Raspberry Pi for the first time
+
+* Change the password for the ``pi`` account after this first boot [recommended]
+
+* Set time zone to UTC
+
+        sudo raspi-config
+
+    **Localisation Options > Change Time Zone > None of the above > UTC**
+
+* Enable VNC
+
+        sudo raspi-config
+
+    **Interfacing Options > VNC > Yes**
 
 * Update and upgrade your Raspberry Pi
 
         sudo apt-get update
         sudo apt-get upgrade
+        sudo apt-get autoremove
 
-* Install the following packages
+* Configure the BerryGPS-IMU V3 - The manufacturer's instructions may be found in the article [BerryGPS Setup Guide for Raspberry Pi](https://ozzmaker.com/berrygps-setup-guide-raspberry-pi/) and are summarized below 
 
-        sudo apt-get install vim
-        sudo apt-get install dcraw
-        sudo apt-get install udhcpd
-        sudo apt-get install gpsd \
-                             gpsd-clients
-        sudo apt-get install gphoto2 \
-                             libgphoto2-6 \
-                             libgphoto2-dev \
-                             libgphoto2-dev-doc \
-                             libgphoto2-l10n \
-                             libgphoto2-port12 \
-                             python-gphoto2-doc \
-                             python-gphoto2cffi \
-                             python-piggyphoto \
-                             python3-gphoto2 \
-                             python3-gphoto2cffi
+  * The serial console needs to be disabled and the the serial port enabled
 
-* In the ``/home/pi`` directory, clone this repository
+            sudo raspi-config
 
-        git clone https://github.com/csalvaggio/camera_trigger.git
+        **Interfacing Options > Serial > No > Yes** and **Yes** to reboot
 
-* Configure the BerryGPS-IMU V3 by following the [BerryGPS Setup Guide for Raspberry Pi](https://ozzmaker.com/berrygps-setup-guide-raspberry-pi/) and make sure that ``gpsd`` starts automatically at boot time
+  * Test that the GPS is operating properly (serial)
+ 
+            cat /dev/serial0
 
-        sudo systemctl stop gpsd.socket
-        sudo systemctl disable gpsd.socket
-        sudo systemctl enable gpsd.socket
-        sudo systemctl start gpsd.socket
+  * Install ``gpsd``. ``gpsd`` is a daemon that receives data from a GPS receiver, and provides the data back to multiple applications through a socket.
+
+            sudo apt-get install gpsd-clients gpsd
+
+  * Edit the ``gpsd`` configuration file so that the daemon uses the correct serial device
+
+            sudo vi /etc/default/gpsd
+
+        Look for ``DEVICES=""`` and change it to ``DEVICES="/dev/serial0"``
+
+  * Make sure that ``gpsd`` starts automatically at boot time
+
+            sudo systemctl stop gpsd.socket
+            sudo systemctl disable gpsd.socket
+            sudo systemctl enable gpsd.socket
+            sudo systemctl start gpsd.socket
+
+            sudo reboot
+
+  * Test that the GPS is operating properly (socket)
+
+            gpspipe -r
 
 * Install [gps3](https://pypi.org/project/gps3/)
 
         sudo pip2 install gps3
         sudo pip3 install gps3
 
+* Configure and test ``gphoto2``
+
+  * Install the following packages
+  
+            sudo apt-get install gphoto2 libgphoto2-6 libgphoto2-dev libgphoto2-dev-doc libgphoto2-l10n libgphoto2-port12 python-gphoto2-doc python-gphoto2cffi python-piggyphoto python3-gphoto2 python3-gphoto2cffi
+
+  * With a DSLR connected to the Raspberry Pi via a USB cable, check where ``gphoto2`` is saving images on the camera
+
+            gphoto2 --get-config capturetarget
+               Label: Capture Target
+               Readonly: 0
+               Type: RADIO
+               Current: Internal RAM    <--------
+               Choice: 0 Internal RAM
+               Choice: 1 Memory card
+               END
+
+     If ``gphoto2`` indicates that it is currently saving to the ``Internal RAM`` as above, then configure ``gphoto2`` so that captured images are saved to the SD card on the camera
+
+            gphoto2 --set-config capturetarget=1
+            gphoto2 --get-config capturetarget
+               Label: Capture Target
+               Readonly: 0
+               Type: RADIO
+               Current: Memory card     <---------
+               Choice: 0 Internal RAM
+               Choice: 1 Memory card
+               END
+
+* Install these remaining packages
+
+        sudo apt-get install vim
+        sudo apt-get install dcraw
+        sudo apt-get install udhcpd
+
+* Clean up the ``/home/pi`` directory
+
+        rm -fr Bookshelf Desktop Documents Downloads Music Pictures Public Templates Videos
+
+* In the ``/home/pi`` directory, checkout this repository
+
+        cd /home/pi
+        git init
+        git remote add origin https://github.com/csalvaggio/camera_trigger.git
+        git fetch
+        git checkout -f master
+
+* Log out and log back in
+
 * Configure maintenance cron jobs by typing ``crontab -e`` and inserting the following at the end of the crontab file
 
         * * * * * pkill -f gvfs-gphoto2-volume-monitor
         * * * * * pkill -f gvfsd-gphoto2
 
-* With a DSLR connected to the Raspberry Pi via a USB cable, check where gphoto2 is saving images on the camera
-
-        gphoto2 --get-config capturetarget
-           Label: Capture Target                                                          
-           Readonly: 0
-           Type: RADIO
-           Current: Internal RAM    <--------
-           Choice: 0 Internal RAM
-           Choice: 1 Memory card
-           END
-If gphoto2 indicates that it is currently saving to the ``Internal RAM`` as above, then configure gphoto2 so that captured images are saved to the SD card on the camera
-
-        gphoto2 --set-config capturetarget=1
-        gphoto2 --get-config capturetarget
-           Label: Capture Target                                                          
-           Readonly: 0
-           Type: RADIO
-           Current: Memory card     <---------
-           Choice: 0 Internal RAM
-           Choice: 1 Memory card
-           END
-
-## TRIGGER USAGE
+## USAGE
 At this point, the system is ready to use as a camera triggering system using either a shutter release cable (assuming the custom camera trigger board is attached) or a USB cable (using GPhoto2).
 
 To use the shutter release cable
@@ -143,23 +214,30 @@ To use the USB cable
       -d DIRECTORY, --directory DIRECTORY
                             directory to save images to [default is None]
 
-## DUPLICATING CAMERA TRIGGER
+## MAINTENANCE
+### DUPLICATING CAMERA TRIGGER
 To create an additional camera trigger, [create a byte-for-byte copy of the SD card](https://appcodelabs.com/how-to-backup-clone-a-raspberry-pi-sd-card-on-macos-the-easy-way) created above.  While this is technically all that needs done, it is recommended that the computer's name is changed so that any ad hoc wireless network that is created will have a different name and will not interfere with other triggers in close proximity.
 
-Once the card is duplicated, change the hostname using a macOS computer equipped with [Paragon Software's extFS](https://www.paragon-software.com/home/extfs-mac/) application.  Insert the Raspberry Pi's SD card in the Mac.  You will notice that two partitions are mounted; ``boot`` and ``rootfs``.  The ``rootfs`` partition is the Raspberry Pi's main filesystem.  The hostname (*e.g.* ``cameratriggermaster``) needs to be changed in two places on that filesystem; in ``/etc/hostname``
+Once the card is duplicated, change the hostname using a macOS computer equipped with [Paragon Software's extFS](https://www.paragon-software.com/home/extfs-mac/) application.  Insert the Raspberry Pi's SD card in the Mac.  You will notice that two partitions are mounted; ``boot`` and ``rootfs``.  The ``rootfs`` partition is the Raspberry Pi's main filesystem.  The hostname (*e.g.* ``cameratriggermaster``) needs to be changed in two places on that filesystem
+
+*/etc/hostname*
 
     cameratriggermaster
 
-and in ``/etc/hosts``
+and in
+
+*/etc/hosts*
 
     127.0.0.1	localhost
-    ::1		localhost ip6-localhost ip6-loopback
+    ::1			localhost ip6-localhost ip6-loopback
     ff02::1		ip6-allnodes
     ff02::2		ip6-allrouters
 
     127.0.1.1	cameratriggermaster
 
-This can be done manually using your favorite editor (*e.g.* vi, nano, emacs, or Xcode) or by executing the following script that should be named ``change_rpi_hostname.sh``
+This can be done manually using your favorite editor (*e.g.* vi, nano, emacs, or Xcode) or by executing the following script
+
+*change\_rpi\_hostname.sh*
 
     #!/bin/bash
 
@@ -209,15 +287,17 @@ executed as
 
 where ``cameratriggermaster`` is the original hostname and ``cameratrigger0`` is the desired hostname for the duplicate.
 
-## SWITCHING NETWORK TYPE
-### LAN -> AD HOC
-###### On Raspberry Pi
+### SWITCHING NETWORK TYPE
+#### LAN -> AD HOC
+##### On Raspberry Pi
 While logged on to the Raspberry Pi, to switch to an ad hoc network at next reboot
 
     switch_to_adhoc
 
-###### Off Raspberry Pi
-The ad hoc network can be switched on for the next boot by executing the following script (that should be named ``switch_to_adhoc.sh``)
+##### Off Raspberry Pi
+The ad hoc network can be switched on for the next boot by executing the following script
+
+*switch\_to\_adhoc.sh*
 
     #!/bin/bash
 
@@ -265,14 +345,16 @@ which is executed as
 
     ./switch_to_adhoc.sh
 
-### AD HOC -> LAN
-###### On Raspberry Pi
+#### AD HOC -> LAN
+##### On Raspberry Pi
 To allow the Raspberry Pi to rejoin LAN at next reboot
 
     switch_to_lan
 
-###### Off Raspberry Pi
-To allow the Raspberry Pi to rejoin LAN at next reboot by executing the following script that should be named ``switch_to_lan.sh``
+##### Off Raspberry Pi
+To allow the Raspberry Pi to rejoin LAN at next reboot by executing the following script
+
+*switch\_to\_lan.sh*
 
     #!/bin/bash
 
