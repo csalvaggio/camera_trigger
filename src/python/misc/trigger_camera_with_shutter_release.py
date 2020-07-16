@@ -7,8 +7,8 @@ import time
 def trigger_camera(half_press_time, full_press_time, verbose=False):
    try:
       mode = RPi.GPIO.BCM
-      half_press_pin = 24
-      full_press_pin = 23
+      half_press_pin = 6
+      full_press_pin = 5
 
       # Set up half- and full-press pins
       RPi.GPIO.setmode(mode)
